@@ -1,0 +1,40 @@
+{
+  "Name": "Tijme's Plugin",
+  "Version": "0.1.0.0",
+  "Author": "Tijme",
+  "Actions": [
+    {
+      "Name": "Light Picker",
+      "UUID": "com.tijme.tijmes-plugin.light",
+      "Icon": "imgs/actions/counter/icon",
+      "Tooltip": "Changes the color of your lamp.",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/actions/color-picker/key",
+          "TitleAlignment": "middle"
+        }
+      ]
+    }
+  ],
+  "Category": "Tijme's Plugin",
+  "CategoryIcon": "imgs/plugin/category-icon",
+  "CodePath": "bin/plugin.js",
+  "Description": "Changes the color of your lamp.",
+  "Icon": "imgs/plugin/marketplace",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "6.5"
+  },
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Nodejs": {
+    "Version": "20",
+    "Debug": "enabled"
+  },
+  "UUID": "com.tijme.tijmes-plugin"
+}
