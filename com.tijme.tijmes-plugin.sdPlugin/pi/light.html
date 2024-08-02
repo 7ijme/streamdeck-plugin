@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head lang="en">
+    <meta charset="utf-8" />
+    <script src="https://cdn.jsdelivr.net/gh/geekyeggo/sdpi-components@v2/dist/sdpi-components.js"></script>
+  </head>
+  <body>
+    <sdpi-item label="Lights">
+      <sdpi-textfield
+        setting="lights"
+        placeholder="light.bedroom, light.kitchen"
+        value="light.bedroom"></sdpi-textfield>
+    </sdpi-item>
+    <sdpi-item label="HASS Instance">
+      <sdpi-textfield
+        setting="url"
+        placeholder="homeassistant.local:8123"
+        value="homeassistant.local:8123"></sdpi-textfield>
+    </sdpi-item>
+    <sdpi-item label="HASS User Token">
+      <sdpi-password setting="token"></sdpi-password>
+    </sdpi-item>
+
+    <sdpi-item label="Show value">
+      <sdpi-select
+        hot-reload
+        setting="showValue">
+        <option value="hex">Hexadecimal (#FF0000)</option>
+        <option value="rgb">RGB [255, 0, 0]</option>
+        <option value="none">None</option>
+      </sdpi-select>
+    </sdpi-item>
+    <sdpi-item label="Long press">
+      <sdpi-textfield
+        class="onlynumbers"
+        setting="delay"
+        placeholder="Delay in ms"
+        value="200"
+        pattern="/^[0-9]+$/">
+      </sdpi-textfield>
+    </sdpi-item>
+  </body>
+  <script>
+    const sdpi = document.querySelector("sdpi-textfield.onlynumbers");
+    const shadowInput = sdpi.shadowRoot.querySelector("input");
+    console.log(shadowInput);
+    shadowInput.addEventListener("input", function (e) {
+      e.target.value = e.target.value.replace(/\D/g, "");
+    });
+  </script>
+</html>

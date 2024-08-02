@@ -14,7 +14,8 @@
           "Image": "imgs/actions/color-picker/key",
           "TitleAlignment": "middle"
         }
-      ]
+      ],
+      "PropertyInspectorPath": "pi/light.html"
     }
   ],
   "Category": "Tijme's Plugin",

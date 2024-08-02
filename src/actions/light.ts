@@ -1,5 +1,6 @@
 import {
   action,
+  DidReceiveSettingsEvent,
   KeyDownEvent,
   KeyUpEvent,
   SingletonAction,
@@ -27,24 +28,23 @@ export class Light extends SingletonAction<LightSettings> {
   onWillAppear(ev: WillAppearEvent<LightSettings>): void | Promise<void> {
     // return ev.action.setTitle(ev.action.getSettings().color);
     ev.action.getSettings().then((settings) => {
-      ev.action.setTitle(settings.colorHex || "Color\nPicker");
+      setTitle(settings, ev.action.setTitle.bind(ev.action));
       ev.action.setImage(createPngBase64(settings.colorRgb));
     });
   }
 
   async onKeyDown(ev: KeyDownEvent<LightSettings>): Promise<void> {
-    // wait 200ms
     let settings = await ev.action.getSettings();
     ev.action.setSettings({ ...settings, isDown: true });
 
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, settings.delay));
 
     settings = await ev.action.getSettings();
 
     if (!settings.isDown) return;
     ev.action.setSettings({ ...settings, longPress: true });
 
-    changeLampColor(settings.colorRgb);
+    changeLampColor(settings.colorRgb, settings);
   }
 
   /**
@@ -62,7 +62,7 @@ export class Light extends SingletonAction<LightSettings> {
 
       const color = JSON.parse(stdout.trim());
 
-      changeLampColor(color);
+      changeLampColor(color, settings);
 
       // rgb to hex
       const hex =
@@ -73,19 +73,36 @@ export class Light extends SingletonAction<LightSettings> {
           .toUpperCase();
 
       ev.action.setSettings({
+        ...settings,
         isDown: false,
         colorHex: hex,
         longPress: false,
         colorRgb: color,
       });
 
-      ev.action.setTitle(hex);
+      setTitle(settings, ev.action.setTitle.bind(ev.action));
 
       const img = createPngBase64(color);
       ev.action.setImage(img);
     } else {
       ev.action.setSettings({ ...settings, longPress: false });
     }
+  }
+
+  onDidReceiveSettings(
+    ev: DidReceiveSettingsEvent<LightSettings>
+  ): Promise<void> | void {
+    setTitle(ev.payload.settings, ev.action.setTitle.bind(ev.action));
+  }
+}
+
+function setTitle(settings: LightSettings, change: Function) {
+  if (settings.showValue === "hex" && settings.colorHex) {
+    change(settings.colorHex);
+  } else if (settings.showValue === "rgb" && settings.colorRgb) {
+    change(settings.colorRgb.toString());
+  } else {
+    change("Color\nPicker");
   }
 }
 
@@ -97,10 +114,16 @@ type LightSettings = {
   colorRgb: number[];
   isDown: boolean;
   longPress: boolean;
+  delay: number;
+  showValue: "hex" | "rgb" | "none";
+  lights: string; // comma separated list of lights
+  url: string;
+  token: string;
 };
+
 function createPngBase64([r, g, b]: number[]) {
-  const width = 20;
-  const height = 20;
+  const width = 128;
+  const height = 128;
 
   const png = new PNG({
     width: width,
@@ -123,26 +146,28 @@ function createPngBase64([r, g, b]: number[]) {
   return "data:image/png;base64," + buffer.toString("base64");
 }
 
-function changeLampColor(color: number[]) {
-  const url = process.env.URL as string; // Replace with your actual URL
-  const token = process.env.TOKEN; // Replace with your actual Bearer token
+function changeLampColor(color: number[], settings: LightSettings) {
+  const url = settings.url; // Replace with your actual URL
+  const token = settings.token; // Replace with your actual Bearer token
 
-  const body = {
-    entity_id: process.env.ENTITY_ID as string, // Replace with your actual entity_id
-    rgb_color: color,
-  };
+  for (const light of settings.lights.split(/,( )?/)) {
+    const body = {
+      entity_id: light, // Replace with your actual entity_id
+      rgb_color: color,
+    };
 
-  fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  })
-    .then((response) => response.json())
-    .then((data) => {})
-    .catch((error) => {
-      console.error("Error:", error);
-    });
+    fetch(url + "/api/services/light/turn_on", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    })
+      .then((response) => response.json())
+      .then((data) => {})
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }
 }
