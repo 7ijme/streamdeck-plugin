@@ -9,10 +9,8 @@ import {
 import fetch from "node-fetch";
 import { promisify } from "util";
 import { execFile } from "child_process";
-import dotenv from "dotenv";
 import { PNG } from "pngjs";
 
-dotenv.config();
 const execFileAsync = promisify(execFile);
 
 /**
